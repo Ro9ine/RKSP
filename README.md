@@ -144,7 +144,11 @@ schemathesis run openapi.json --base-url http://localhost:8000 --checks all --hy
 
 1. PostgreSQL + два сервиса из одного репо: **Root Directory** `apps/api` и `apps/web`.
 2. API: `DATABASE_URL`, `JWT_SECRET`, `CORS_ORIGINS` (домен web).
-3. Web: `API_UPSTREAM` = `http://${{workflow-api.RAILWAY_PRIVATE_DOMAIN}}:${{workflow-api.PORT}}` (nginx проксирует `/auth`, `/tasks` и т.д.).
+3. Web: `API_UPSTREAM` = `http://workflow-api.railway.internal:8080` (nginx проксирует `/auth`, `/tasks` и т.д.).
 4. Публичные домены для api и web → вход `lead@example.com` / `password123`.
+
+**Демо (production):**  
+- Web: https://workflow-web-production-87be.up.railway.app  
+- API: https://workflow-api-production-07f4.up.railway.app/docs
 
 После изменений: `git push` — Railway пересоберёт сервисы автоматически.

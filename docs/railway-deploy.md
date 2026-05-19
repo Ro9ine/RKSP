@@ -36,7 +36,7 @@
 
 | Переменная | Значение |
 |------------|----------|
-| `API_UPSTREAM` | `http://${{workflow-api.RAILWAY_PRIVATE_DOMAIN}}:${{workflow-api.PORT}}` |
+| `API_UPSTREAM` | `http://workflow-api.railway.internal:8080` (порт Railway для uvicorn; `${{workflow-api.PORT}}` в CLI иногда не подставляется) |
 
 6. После деплоя открыть `https://<домен-web>/login`.
 

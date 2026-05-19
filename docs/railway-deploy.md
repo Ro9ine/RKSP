@@ -1,79 +1,76 @@
 # Деплой на Railway
 
-Проект разворачивается как **три сервиса** в одном Railway-проекте: PostgreSQL, API, Web.
+Три компонента: **PostgreSQL**, **API** (`apps/api`), **Web** (`apps/web`).  
+Фронт ходит в API через **nginx proxy** (переменная `API_UPSTREAM`), отдельный `VITE_API_URL` при деплое не обязателен.
 
-## 1. Создать проект
+## Шаг 1. Проект и база
 
-1. [railway.app](https://railway.app) → **New Project**.
-2. **Add PostgreSQL** (плагин базы данных).
-3. **New Service** → **GitHub Repo** → репозиторий RKSP (или `railway link` из CLI).
+1. [railway.app](https://railway.app) → проект с подключённым GitHub-репозиторием.
+2. **+ New** → **Database** → **PostgreSQL**.
 
-## 2. Сервис API (`workflow-api`)
+## Шаг 2. Сервис API
 
-| Параметр | Значение |
-|----------|----------|
-| Root Directory | `apps/api` |
-| Builder | Dockerfile |
-
-**Variables** (вкладка Variables → подключить Postgres):
+1. **+ New** → **GitHub Repo** → тот же репозиторий (или **Empty Service** + Connect Repo).
+2. **Settings** → **Service name:** `workflow-api` (важно для ссылок).
+3. **Settings** → **Root Directory:** `apps/api`
+4. **Settings** → **Networking** → **Generate Domain** (публичный URL).
+5. **Variables:**
 
 | Переменная | Значение |
 |------------|----------|
-| `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` (reference) |
-| `JWT_SECRET` | случайная длинная строка |
+| `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` |
+| `JWT_SECRET` | случайная строка (32+ символов) |
 | `CORS_ORIGINS` | `https://${{workflow-web.RAILWAY_PUBLIC_DOMAIN}}` |
 
-**Networking:** включить **Public Networking** → получить домен API.
+6. Дождаться успешного деплоя. Проверка: `https://<домен-api>/health` → `{"status":"ok"}`.
 
-Имя сервиса в Railway должно быть **`workflow-api`** (для ссылки из web) или поправьте `apps/web/railway.toml`.
+При старте контейнера выполняются миграции и `seed.py` (тестовые пользователи).
 
-## 3. Сервис Web (`workflow-web`)
+## Шаг 3. Сервис Web
 
-| Параметр | Значение |
-|----------|----------|
-| Root Directory | `apps/web` |
-| Builder | Dockerfile |
+1. **+ New** → **GitHub Repo** → тот же репозиторий.
+2. **Service name:** `workflow-web`
+3. **Root Directory:** `apps/web`
+4. **Networking** → **Generate Domain**
+5. **Variables:**
 
-**Build argument** (если reference из toml не сработал):
+| Переменная | Значение |
+|------------|----------|
+| `API_UPSTREAM` | `http://${{workflow-api.RAILWAY_PRIVATE_DOMAIN}}:${{workflow-api.PORT}}` |
 
-| ARG | Значение |
-|-----|----------|
-| `VITE_API_URL` | `https://<домен-api>.up.railway.app` |
+6. После деплоя открыть `https://<домен-web>/login`.
 
-**Networking:** Public Networking → домен фронтенда.
+## Шаг 4. Пересборка API (CORS)
 
-После первого деплоя API скопируйте его публичный URL в `VITE_API_URL` и **пересоберите** web.
+После появления домена web обновите `CORS_ORIGINS` на API (если ещё не задано) и **Redeploy** сервис `workflow-api`.
 
-## 4. Порядок деплоя
-
-1. PostgreSQL  
-2. API (дождаться `/health`)  
-3. Web (с корректным `VITE_API_URL`)  
-4. Обновить `CORS_ORIGINS` на API, если менялся домен web → redeploy API  
-
-## 5. CLI (опционально)
+## Шаг 5. CLI (опционально)
 
 ```bash
-npm install -g @railway/cli
 railway login
 cd apps/api
-railway link
+railway link   # выбрать проект и workflow-api
 railway up
 ```
 
-## 6. Тестовые пользователи
+Токен для CI: [Account Tokens](https://railway.app/account/tokens) → `RAILWAY_TOKEN`.
 
-При старте контейнера API выполняются миграции и `scripts/seed.py` (идемпотентно).
+## Тестовые пользователи
 
 | Роль | Email | Пароль |
 |------|-------|--------|
 | Тимлид | lead@example.com | password123 |
 | Сотрудник | anna@ / petr@ / maria@example.com | password123 |
 
-Seed также создаёт команду и 7 демо-задач.
+## Локальная разработка фронта
 
-## 7. Проверка
+`apps/web/.env`: `VITE_API_URL=http://localhost:8000` (Vite без nginx-proxy).
 
-- `https://<api>/health` → `{"status":"ok"}`
-- `https://<api>/docs` → Swagger
-- `https://<web>/login` → вход тимлидом
+## Частые ошибки
+
+| Симптом | Решение |
+|---------|---------|
+| Build failed, Dockerfile not found | Указать Root Directory `apps/api` или `apps/web` |
+| API 502 / DB error | Проверить `DATABASE_URL` = reference на Postgres |
+| Логин 401 / CORS | Задать `CORS_ORIGINS` с доменом web; пересобрать API |
+| Пустой экран после логина | Проверить `API_UPSTREAM` на web, redeploy web |

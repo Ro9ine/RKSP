@@ -1,6 +1,7 @@
 import type { ApiError, Task, TaskComment, Team, TokenResponse, User } from "../types";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+/** Пустая строка = запросы на тот же origin (nginx проксирует на API в Docker/Railway). */
+const API_URL = import.meta.env.VITE_API_URL ?? "";
 
 function getToken(): string | null {
   return localStorage.getItem("access_token");

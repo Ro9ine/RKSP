@@ -1,0 +1,54 @@
+@startuml class-diagram
+enum UserRole { TEAMLEAD; EMPLOYEE }
+enum TaskStatus { ASSIGNED; IN_PROGRESS; COMPLETED; FAILED }
+enum TaskOutcome { SUCCESS; FAILURE }
+
+class User {
+  +id: UUID
+  +email: string
+  +hashed_password: string
+  +full_name: string
+  +role: UserRole
+}
+
+class Team {
+  +id: UUID
+  +name: string
+  +teamlead_id: UUID
+}
+
+class TeamMember {
+  +team_id: UUID
+  +user_id: UUID
+}
+
+class Task {
+  +id: UUID
+  +title: string
+  +description: string
+  +status: TaskStatus
+  +duration_minutes: int
+  +due_at: datetime
+  +assignee_id: UUID
+}
+
+class TaskComment {
+  +task_id: UUID
+  +author_id: UUID
+  +text: string
+}
+
+class TaskCompletion {
+  +task_id: UUID
+  +outcome: TaskOutcome
+  +comment: string
+}
+
+User "1" -- "0..1" Team : leads
+Team "1" *-- "*" TeamMember
+User "1" -- "*" TeamMember
+Team "1" *-- "*" Task
+User "1" -- "*" Task : assigned
+Task "1" *-- "*" TaskComment
+Task "1" -- "0..1" TaskCompletion
+@enduml

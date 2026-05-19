@@ -1,0 +1,14 @@
+@startuml sequence-complete-task
+actor Employee
+participant "React SPA" as Web
+participant "FastAPI" as API
+database PostgreSQL as DB
+
+Employee -> Web: outcome + comment
+Web -> API: POST /tasks/{id}/complete
+API -> API: verify JWT, role, assignee
+API -> DB: UPDATE task status\nINSERT completion
+DB --> API: ok
+API --> Web: TaskResponse
+Web --> Employee: updated card
+@enduml

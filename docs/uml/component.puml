@@ -1,0 +1,18 @@
+@startuml component
+package "Client" {
+  [React SPA] as Web
+}
+
+package "Server" {
+  [FastAPI REST] as API
+  [Auth JWT] as Auth
+  [RBAC Depends] as RBAC
+}
+
+database "PostgreSQL" as DB
+
+Web --> API : JSON/HTTPS
+API --> Auth
+Auth --> RBAC
+RBAC --> DB
+@enduml

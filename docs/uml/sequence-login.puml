@@ -1,0 +1,16 @@
+@startuml sequence-login
+actor User
+participant "React SPA" as Web
+participant "FastAPI" as API
+database PostgreSQL as DB
+
+User -> Web: email, password
+Web -> API: POST /auth/login
+API -> DB: SELECT user
+DB --> API: user row
+API --> Web: JWT access_token
+Web -> Web: save token
+Web -> API: GET /users/me (Bearer)
+API --> Web: User + role
+Web --> User: redirect dashboard
+@enduml

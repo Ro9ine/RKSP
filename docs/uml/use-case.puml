@@ -1,0 +1,26 @@
+@startuml use-case
+left to right direction
+actor Teamlead as TL
+actor Employee as EM
+
+rectangle "Workflow System" {
+  usecase "Войти в систему" as UC1
+  usecase "Создать сотрудника" as UC2
+  usecase "Назначить задачу" as UC3
+  usecase "Просмотреть задачи команды" as UC4
+  usecase "Просмотреть свои задачи" as UC5
+  usecase "Взять задачу в работу" as UC6
+  usecase "Добавить комментарий" as UC7
+  usecase "Завершить задачу" as UC8
+}
+
+TL --> UC1
+EM --> UC1
+TL --> UC2
+TL --> UC3
+TL --> UC4
+EM --> UC5
+EM --> UC6
+EM --> UC7
+EM --> UC8
+@enduml
